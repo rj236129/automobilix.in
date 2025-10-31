@@ -233,6 +233,13 @@
             grid-column: 1 / -1;
         }
 
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
+            grid-column: 1 / -1;
+        }
+
         /* Ad Container */
         .ad-container {
             background: white;
@@ -391,7 +398,10 @@
 
         <!-- Products Grid -->
         <div id="products" class="grid">
-            <!-- Products will be loaded here dynamically -->
+            <div class="loading">
+                <h3>Loading Products...</h3>
+                <p>Please wait while we fetch the latest products</p>
+            </div>
         </div>
 
         <!-- Another Google AdSense Ad -->
@@ -450,14 +460,26 @@
         </div>
     </footer>
 
-    <script>
-        // Load all products from localStorage
-        function loadAllProducts() {
-            return JSON.parse(localStorage.getItem('products')) || [];
+    <script type="module">
+        import { db, collection, getDocs, query, where } from './firebase-config.js';
+
+        // Load all products from Firebase
+        async function loadAllProducts() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                const products = [];
+                querySnapshot.forEach((doc) => {
+                    products.push({ id: doc.id, ...doc.data() });
+                });
+                return products;
+            } catch (error) {
+                console.error("Error loading products:", error);
+                return [];
+            }
         }
 
         // Render products with search and filter
-        function renderProducts(productsToRender) {
+        async function renderProducts(productsToRender) {
             const container = document.getElementById('products');
             
             if (productsToRender.length === 0) {
@@ -492,60 +514,76 @@
         }
 
         // Populate company filter
-        function populateCompanyFilter() {
-            const products = loadAllProducts();
-            const companies = [...new Set(products.map(product => product.company))];
-            const filter = document.getElementById('filterCompany');
-            
-            companies.forEach(company => {
-                const option = document.createElement('option');
-                option.value = company;
-                option.textContent = company;
-                filter.appendChild(option);
-            });
+        async function populateCompanyFilter() {
+            try {
+                const products = await loadAllProducts();
+                const companies = [...new Set(products.map(product => product.company))];
+                const filter = document.getElementById('filterCompany');
+                
+                // Clear existing options except the first one
+                while (filter.children.length > 1) {
+                    filter.removeChild(filter.lastChild);
+                }
+                
+                companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company;
+                    option.textContent = company;
+                    filter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating company filter:', error);
+            }
         }
 
         // Apply filters
-        function applyFilters() {
-            const products = loadAllProducts();
-            const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
-            const category = document.getElementById('selCategory').value;
-            const company = document.getElementById('filterCompany').value;
-            const priceRange = document.getElementById('filterPrice').value;
+        async function applyFilters() {
+            try {
+                const products = await loadAllProducts();
+                const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+                const category = document.getElementById('selCategory').value;
+                const company = document.getElementById('filterCompany').value;
+                const priceRange = document.getElementById('filterPrice').value;
 
-            let filtered = products.filter(product => {
-                const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
-                                    product.company.toLowerCase().includes(searchTerm) ||
-                                    product.type.toLowerCase().includes(searchTerm);
-                
-                const matchesCategory = !category || product.category === category;
-                const matchesCompany = !company || product.company === company;
-                
-                let matchesPrice = true;
-                if (priceRange) {
-                    const priceNum = parseInt(product.price.replace(/[^\d]/g, ''));
-                    if (priceRange === 'low') matchesPrice = priceNum < 500000;
-                    else if (priceRange === 'medium') matchesPrice = priceNum >= 500000 && priceNum <= 1500000;
-                    else if (priceRange === 'high') matchesPrice = priceNum > 1500000;
-                }
+                let filtered = products.filter(product => {
+                    const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                                        product.company.toLowerCase().includes(searchTerm) ||
+                                        (product.type && product.type.toLowerCase().includes(searchTerm));
+                    
+                    const matchesCategory = !category || product.category === category;
+                    const matchesCompany = !company || product.company === company;
+                    
+                    let matchesPrice = true;
+                    if (priceRange && product.price) {
+                        const priceNum = parseInt(product.price.replace(/[^\d]/g, '')) || 0;
+                        if (priceRange === 'low') matchesPrice = priceNum < 500000;
+                        else if (priceRange === 'medium') matchesPrice = priceNum >= 500000 && priceNum <= 1500000;
+                        else if (priceRange === 'high') matchesPrice = priceNum > 1500000;
+                    }
 
-                return matchesSearch && matchesCategory && matchesCompany && matchesPrice;
-            });
+                    return matchesSearch && matchesCategory && matchesCompany && matchesPrice;
+                });
 
-            renderProducts(filtered);
+                renderProducts(filtered);
+            } catch (error) {
+                console.error('Error applying filters:', error);
+            }
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            const products = loadAllProducts();
-            populateCompanyFilter();
-            renderProducts(products);
-            
-            // Add event listeners for real-time filtering
-            document.getElementById('globalSearch').addEventListener('input', applyFilters);
-            document.getElementById('selCategory').addEventListener('change', applyFilters);
-            document.getElementById('filterCompany').addEventListener('change', applyFilters);
-            document.getElementById('filterPrice').addEventListener('change', applyFilters);
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await populateCompanyFilter();
+                await applyFilters();
+                
+                // Add event listeners for real-time filtering
+                document.getElementById('globalSearch').addEventListener('input', applyFilters);
+                document.getElementById('selCategory').addEventListener('change', applyFilters);
+                document.getElementById('filterCompany').addEventListener('change', applyFilters);
+                document.getElementById('filterPrice').addEventListener('change', applyFilters);
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
         });
     </script>
 </body>
