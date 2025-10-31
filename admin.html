@@ -3,22 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cars - AutoMobilix</title>
-    <meta name="description" content="Latest car models with specifications, prices, and launch dates. Find your perfect car.">
-    
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
-    
+    <title>Admin Panel - AutoMobilix</title>
     <style>
-        /* Same CSS as before, just adding loading style */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--secondary);
-            grid-column: 1 / -1;
-        }
-        
-        /* Rest of the CSS remains exactly the same as your original cars.html */
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
@@ -98,30 +84,76 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .page-hero {
-            text-align: center;
-            padding: 3rem 0;
-            color: white;
-        }
-
-        .page-hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Controls */
-        .controls {
+        .admin-panel {
             background: white;
-            padding: 1.5rem;
-            margin: 2rem 0;
+            min-height: 80vh;
+            margin: 2rem auto;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            overflow: hidden;
         }
 
-        .control-input {
+        .admin-header {
+            background: var(--dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .admin-tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .admin-tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--secondary);
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+
+        .admin-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
+
+        .admin-content {
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-input {
             padding: 0.75rem;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -129,83 +161,66 @@
             transition: var(--transition);
         }
 
-        .control-input:focus {
+        .form-input:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        /* Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            padding: 2rem 0;
-        }
-
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card-image {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-        }
-
-        .card-content {
-            padding: 1.5rem;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
         .btn {
             padding: 0.75rem 1.5rem;
-            background: var(--primary);
-            color: white;
             border: none;
             border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
             font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--secondary);
-            grid-column: 1 / -1;
+        .btn-primary {
+            background: var(--primary);
+            color: white;
         }
 
-        /* Ad Container */
-        .ad-container {
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
             background: white;
+            border: 1px solid #e2e8f0;
             border-radius: var(--radius);
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: center;
+            padding: 1.5rem;
             box-shadow: var(--shadow);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
         }
 
         .footer {
@@ -215,23 +230,10 @@
             margin-top: 4rem;
         }
 
-        @media (max-width: 768px) {
-            .nav {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .nav-links {
-                gap: 1rem;
-            }
-            
-            .controls {
-                grid-template-columns: 1fr;
-            }
-            
-            .grid {
-                grid-template-columns: 1fr;
-            }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
         }
     </style>
 </head>
@@ -245,72 +247,122 @@
                 </div>
                 <ul class="nav-links">
                     <li><a href="index.html">Home</a></li>
-                    <li><a href="cars.html" class="active">Cars</a></li>
+                    <li><a href="cars.html">Cars</a></li>
                     <li><a href="bikes.html">Bikes</a></li>
                     <li><a href="scooters.html">Scooters</a></li>
                     <li><a href="mobiles.html">Mobiles</a></li>
-                    <li><a href="admin.html">Admin</a></li>
+                    <li><a href="admin.html" class="active">Admin</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <section class="page-hero">
-        <div class="container">
-            <h1>Latest Cars</h1>
-            <p>Discover the newest car models with specifications and prices</p>
-        </div>
-    </section>
-
     <main class="container">
-        <!-- Google AdSense Ad -->
-        <div class="ad-container">
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-8089328615109878"
-                 data-ad-slot="1234567892"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-
-        <!-- Search & Filter Controls -->
-        <div class="controls">
-            <input type="text" class="control-input" placeholder="Search cars..." id="searchCars">
-            <select class="control-input" id="filterCompany">
-                <option value="">All Companies</option>
-            </select>
-            <select class="control-input" id="filterPrice">
-                <option value="">All Prices</option>
-                <option value="low">Under ₹10L</option>
-                <option value="medium">₹10L - ₹20L</option>
-                <option value="high">Above ₹20L</option>
-            </select>
-        </div>
-
-        <!-- Cars Grid -->
-        <div class="grid" id="cars-container">
-            <div class="loading">
-                <h3>Loading Cars...</h3>
-                <p>Please wait while we fetch the latest cars</p>
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h1>Admin Dashboard</h1>
+                <p>Manage your products and content</p>
             </div>
-        </div>
 
-        <!-- Another Google AdSense Ad -->
-        <div class="ad-container">
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-format="fluid"
-                 data-ad-layout-key="-gw-3+1f-3d+2z"
-                 data-ad-client="ca-pub-8089328615109878"
-                 data-ad-slot="1234567893"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="showTab('add')">Add Product</button>
+                <button class="admin-tab" onclick="showTab('manage')">Manage Products</button>
+                <button class="admin-tab" onclick="showTab('export')">Export Data</button>
+            </div>
+
+            <div class="admin-content">
+                <!-- Add Product Tab -->
+                <div id="add-tab" class="tab-content active">
+                    <h2>Add New Product</h2>
+                    <form id="product-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-input" id="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="cars">Cars</option>
+                                    <option value="bikes">Bikes</option>
+                                    <option value="scooters">Scooters</option>
+                                    <option value="mobiles">Mobiles</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-input" id="name" required placeholder="Enter product name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Company</label>
+                                <input type="text" class="form-input" id="company" required placeholder="Enter company name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Price</label>
+                                <input type="text" class="form-input" id="price" required placeholder="e.g., ₹12.50 Lakh">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Type</label>
+                                <input type="text" class="form-input" id="type" required placeholder="e.g., SUV, Electric, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Launch Date</label>
+                                <input type="date" class="form-input" id="launch-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Image URL</label>
+                                <input type="url" class="form-input" id="image" required placeholder="https://example.com/image.jpg">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-input" id="description" rows="4" placeholder="Product description"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Product</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
+                    </form>
+                </div>
+
+                <!-- Manage Products Tab -->
+                <div id="manage-tab" class="tab-content">
+                    <h2>Manage Products</h2>
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="search-products" placeholder="Search products...">
+                    </div>
+                    <div class="products-grid" id="products-list">
+                        <div class="loading">
+                            <h3>Loading Products...</h3>
+                            <p>Please wait while we fetch products from database</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Data Tab -->
+                <div id="export-tab" class="tab-content">
+                    <h2>Export Data</h2>
+                    <div style="margin: 2rem 0;">
+                        <h3>Download JSON Files</h3>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0;">
+                            <button class="btn btn-primary" onclick="downloadData('cars')">Cars Data</button>
+                            <button class="btn btn-primary" onclick="downloadData('bikes')">Bikes Data</button>
+                            <button class="btn btn-primary" onclick="downloadData('scooters')">Scooters Data</button>
+                            <button class="btn btn-primary" onclick="downloadData('mobiles')">Mobiles Data</button>
+                            <button class="btn btn-secondary" onclick="downloadAllData()">All Data</button>
+                        </div>
+                    </div>
+                    <div style="margin: 2rem 0;">
+                        <h3>GitHub Integration</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">GitHub Repository</label>
+                                <input type="text" class="form-input" id="github-repo" placeholder="username/repository">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Access Token</label>
+                                <input type="password" class="form-input" id="github-token" placeholder="GitHub token">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="pushToGitHub()">Push to GitHub</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -321,129 +373,226 @@
     </footer>
 
     <script type="module">
-        import { db, collection, getDocs, query, where } from './firebase-config.js';
+        import { db, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from './firebase-config.js';
 
-        // Load cars from Firebase with search and filter
-        async function loadCars() {
+        // Tab Management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            // Load products if manage tab
+            if (tabName === 'manage') {
+                loadProducts();
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('product-form').reset();
+            delete document.getElementById('product-form').dataset.editingId;
+        }
+
+        // Product Management
+        document.getElementById('product-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const product = {
+                name: document.getElementById('name').value,
+                company: document.getElementById('company').value,
+                price: document.getElementById('price').value,
+                type: document.getElementById('type').value,
+                category: document.getElementById('category').value,
+                launch_date: document.getElementById('launch-date').value,
+                image: document.getElementById('image').value,
+                description: document.getElementById('description').value,
+                created_at: new Date().toISOString()
+            };
+
             try {
-                const q = query(collection(db, "products"), where("category", "==", "cars"));
-                const querySnapshot = await getDocs(q);
-                const cars = [];
+                const editingId = this.dataset.editingId;
+                if (editingId) {
+                    // Update existing product
+                    await updateDoc(doc(db, "products", editingId), product);
+                    delete this.dataset.editingId;
+                    alert('Product updated successfully!');
+                } else {
+                    // Add new product
+                    await addDoc(collection(db, "products"), product);
+                    alert('Product added successfully!');
+                }
+                clearForm();
+                
+                // Reload products if on manage tab
+                if (document.getElementById('manage-tab').classList.contains('active')) {
+                    loadProducts();
+                }
+            } catch (error) {
+                console.error("Error saving product:", error);
+                alert('Error saving product. Please try again.');
+            }
+        });
+
+        async function loadProducts() {
+            try {
+                const productsList = document.getElementById('products-list');
+                const searchTerm = document.getElementById('search-products').value.toLowerCase();
+                
+                productsList.innerHTML = '<div class="loading"><h3>Loading Products...</h3><p>Please wait while we fetch products from database</p></div>';
+                
+                const querySnapshot = await getDocs(collection(db, "products"));
+                let products = [];
                 querySnapshot.forEach((doc) => {
-                    cars.push({ id: doc.id, ...doc.data() });
+                    products.push({ id: doc.id, ...doc.data() });
                 });
                 
-                const searchTerm = document.getElementById('searchCars').value.toLowerCase();
-                const companyFilter = document.getElementById('filterCompany').value;
-                const priceFilter = document.getElementById('filterPrice').value;
-                
-                let filteredCars = cars;
-                
-                // Apply search filter
+                let filteredProducts = products;
                 if (searchTerm) {
-                    filteredCars = filteredCars.filter(car => 
-                        car.name.toLowerCase().includes(searchTerm) ||
-                        car.company.toLowerCase().includes(searchTerm) ||
-                        (car.type && car.type.toLowerCase().includes(searchTerm))
+                    filteredProducts = products.filter(product => 
+                        product.name.toLowerCase().includes(searchTerm) ||
+                        product.company.toLowerCase().includes(searchTerm)
                     );
                 }
-                
-                // Apply company filter
-                if (companyFilter) {
-                    filteredCars = filteredCars.filter(car => car.company === companyFilter);
-                }
-                
-                // Apply price filter
-                if (priceFilter) {
-                    filteredCars = filteredCars.filter(car => {
-                        const priceNum = parseInt(car.price.replace(/[^\d]/g, '')) || 0;
-                        if (priceFilter === 'low') return priceNum < 1000000;
-                        if (priceFilter === 'medium') return priceNum >= 1000000 && priceNum <= 2000000;
-                        if (priceFilter === 'high') return priceNum > 2000000;
-                        return true;
-                    });
-                }
-                
-                const container = document.getElementById('cars-container');
-                
-                if (filteredCars.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <h3>No Cars Found</h3>
-                            <p>Try adjusting your search filters or add cars through the admin panel.</p>
-                            <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Cars Now</a>
-                        </div>
-                    `;
+
+                if (filteredProducts.length === 0) {
+                    productsList.innerHTML = '<p>No products found.</p>';
                     return;
                 }
 
-                container.innerHTML = filteredCars.map(car => `
-                    <div class="card">
-                        <img src="${car.image}" alt="${car.name}" class="card-image" 
+                productsList.innerHTML = filteredProducts.map(product => `
+                    <div class="product-card">
+                        <img src="${product.image}" alt="${product.name}" class="product-image" 
                              onerror="this.src='https://images.unsplash.com/photo-1565688534245-05d6b5be184a?w=400'">
-                        <div class="card-content">
-                            <h3 class="card-title">${car.name}</h3>
-                            <div class="card-price">${car.price}</div>
-                            <p><strong>Company:</strong> ${car.company}</p>
-                            <p><strong>Type:</strong> ${car.type}</p>
-                            <p><strong>Launch Date:</strong> ${new Date(car.launch_date).toLocaleDateString()}</p>
-                            <p>${car.description}</p>
+                        <h3>${product.name}</h3>
+                        <p><strong>Company:</strong> ${product.company}</p>
+                        <p><strong>Price:</strong> ${product.price}</p>
+                        <p><strong>Category:</strong> ${product.category}</p>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn btn-primary" onclick="editProduct('${product.id}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteProduct('${product.id}')">Delete</button>
                         </div>
                     </div>
                 `).join('');
             } catch (error) {
-                console.error("Error loading cars:", error);
-                document.getElementById('cars-container').innerHTML = `
-                    <div class="empty-state">
-                        <h3>Error Loading Cars</h3>
-                        <p>Please try again later.</p>
-                    </div>
-                `;
+                console.error("Error loading products:", error);
+                document.getElementById('products-list').innerHTML = '<p>Error loading products.</p>';
             }
         }
 
-        // Populate company filter
-        async function populateCompanyFilter() {
+        async function editProduct(id) {
             try {
-                const q = query(collection(db, "products"), where("category", "==", "cars"));
-                const querySnapshot = await getDocs(q);
-                const cars = [];
-                querySnapshot.forEach((doc) => {
-                    cars.push({ id: doc.id, ...doc.data() });
-                });
+                const docRef = doc(db, "products", id);
+                const docSnap = await getDocs(query(collection(db, "products"), where("__name__", "==", id)));
                 
-                const companies = [...new Set(cars.map(car => car.company))];
-                const filter = document.getElementById('filterCompany');
-                
-                // Clear existing options except the first one
-                while (filter.children.length > 1) {
-                    filter.removeChild(filter.lastChild);
+                if (!docSnap.empty) {
+                    const product = { id: docSnap.docs[0].id, ...docSnap.docs[0].data() };
+                    
+                    document.getElementById('category').value = product.category;
+                    document.getElementById('name').value = product.name;
+                    document.getElementById('company').value = product.company;
+                    document.getElementById('price').value = product.price;
+                    document.getElementById('type').value = product.type;
+                    document.getElementById('launch-date').value = product.launch_date;
+                    document.getElementById('image').value = product.image;
+                    document.getElementById('description').value = product.description;
+                    
+                    // Store the current product ID for updating
+                    document.getElementById('product-form').dataset.editingId = product.id;
+                    
+                    showTab('add');
                 }
-                
-                companies.forEach(company => {
-                    const option = document.createElement('option');
-                    option.value = company;
-                    option.textContent = company;
-                    filter.appendChild(option);
-                });
             } catch (error) {
-                console.error('Error populating company filter:', error);
+                console.error("Error loading product for editing:", error);
+                alert('Error loading product for editing.');
             }
         }
+
+        async function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                try {
+                    await deleteDoc(doc(db, "products", id));
+                    loadProducts();
+                } catch (error) {
+                    console.error("Error deleting product:", error);
+                    alert('Error deleting product. Please try again.');
+                }
+            }
+        }
+
+        // Export Functions
+        async function downloadData(category) {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", category));
+                const querySnapshot = await getDocs(q);
+                const categoryProducts = [];
+                querySnapshot.forEach((doc) => {
+                    categoryProducts.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const dataStr = JSON.stringify(categoryProducts, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${category}_data.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error("Error exporting data:", error);
+                alert('Error exporting data.');
+            }
+        }
+
+        async function downloadAllData() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                const allProducts = [];
+                querySnapshot.forEach((doc) => {
+                    allProducts.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const dataStr = JSON.stringify(allProducts, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `all_products_data.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error("Error exporting all data:", error);
+                alert('Error exporting all data.');
+            }
+        }
+
+        function pushToGitHub() {
+            const repo = document.getElementById('github-repo').value;
+            const token = document.getElementById('github-token').value;
+            
+            if (!repo) {
+                alert('Please enter GitHub repository name');
+                return;
+            }
+            
+            alert(`Data would be pushed to GitHub repository: ${repo}\n\nIn a real implementation, this would use GitHub API to upload JSON files.`);
+        }
+
+        // Search functionality
+        document.getElementById('search-products').addEventListener('input', loadProducts);
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                await populateCompanyFilter();
-                await loadCars();
-                
-                // Add event listeners for real-time filtering
-                document.getElementById('searchCars').addEventListener('input', loadCars);
-                document.getElementById('filterCompany').addEventListener('change', loadCars);
-                document.getElementById('filterPrice').addEventListener('change', loadCars);
-            } catch (error) {
-                console.error('Error initializing page:', error);
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
         });
     </script>
 </body>
