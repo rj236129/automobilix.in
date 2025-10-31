@@ -189,6 +189,13 @@
             grid-column: 1 / -1;
         }
 
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
+            grid-column: 1 / -1;
+        }
+
         /* Ad Container */
         .ad-container {
             background: white;
@@ -284,7 +291,10 @@
 
         <!-- Cars Grid -->
         <div class="grid" id="cars-container">
-            <!-- Cars will be loaded dynamically -->
+            <div class="loading">
+                <h3>Loading Cars...</h3>
+                <p>Please wait while we fetch the latest cars</p>
+            </div>
         </div>
 
         <!-- Another Google AdSense Ad -->
@@ -308,95 +318,130 @@
         </div>
     </footer>
 
-    <script>
-        // Load cars from localStorage with search and filter
-        function loadCars() {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const cars = products.filter(p => p.category === 'cars');
-            const searchTerm = document.getElementById('searchCars').value.toLowerCase();
-            const companyFilter = document.getElementById('filterCompany').value;
-            const priceFilter = document.getElementById('filterPrice').value;
-            
-            let filteredCars = cars;
-            
-            // Apply search filter
-            if (searchTerm) {
-                filteredCars = filteredCars.filter(car => 
-                    car.name.toLowerCase().includes(searchTerm) ||
-                    car.company.toLowerCase().includes(searchTerm) ||
-                    car.type.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            // Apply company filter
-            if (companyFilter) {
-                filteredCars = filteredCars.filter(car => car.company === companyFilter);
-            }
-            
-            // Apply price filter
-            if (priceFilter) {
-                filteredCars = filteredCars.filter(car => {
-                    const priceNum = parseInt(car.price.replace(/[^\d]/g, ''));
-                    if (priceFilter === 'low') return priceNum < 1000000;
-                    if (priceFilter === 'medium') return priceNum >= 1000000 && priceNum <= 2000000;
-                    if (priceFilter === 'high') return priceNum > 2000000;
-                    return true;
+    <script type="module">
+        import { db, collection, getDocs, query, where } from './firebase-config.js';
+
+        // Load cars from Firebase with search and filter
+        async function loadCars() {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", "cars"));
+                const querySnapshot = await getDocs(q);
+                const cars = [];
+                querySnapshot.forEach((doc) => {
+                    cars.push({ id: doc.id, ...doc.data() });
                 });
-            }
-            
-            const container = document.getElementById('cars-container');
-            
-            if (filteredCars.length === 0) {
-                container.innerHTML = `
+                
+                const searchTerm = document.getElementById('searchCars').value.toLowerCase();
+                const companyFilter = document.getElementById('filterCompany').value;
+                const priceFilter = document.getElementById('filterPrice').value;
+                
+                let filteredCars = cars;
+                
+                // Apply search filter
+                if (searchTerm) {
+                    filteredCars = filteredCars.filter(car => 
+                        car.name.toLowerCase().includes(searchTerm) ||
+                        car.company.toLowerCase().includes(searchTerm) ||
+                        (car.type && car.type.toLowerCase().includes(searchTerm))
+                    );
+                }
+                
+                // Apply company filter
+                if (companyFilter) {
+                    filteredCars = filteredCars.filter(car => car.company === companyFilter);
+                }
+                
+                // Apply price filter
+                if (priceFilter) {
+                    filteredCars = filteredCars.filter(car => {
+                        const priceNum = parseInt(car.price.replace(/[^\d]/g, '')) || 0;
+                        if (priceFilter === 'low') return priceNum < 1000000;
+                        if (priceFilter === 'medium') return priceNum >= 1000000 && priceNum <= 2000000;
+                        if (priceFilter === 'high') return priceNum > 2000000;
+                        return true;
+                    });
+                }
+                
+                const container = document.getElementById('cars-container');
+                
+                if (filteredCars.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No Cars Found</h3>
+                            <p>Try adjusting your search filters or add cars through the admin panel.</p>
+                            <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Cars Now</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = filteredCars.map(car => `
+                    <div class="card">
+                        <img src="${car.image}" alt="${car.name}" class="card-image" 
+                             onerror="this.src='https://images.unsplash.com/photo-1565688534245-05d6b5be184a?w=400'">
+                        <div class="card-content">
+                            <h3 class="card-title">${car.name}</h3>
+                            <div class="card-price">${car.price}</div>
+                            <p><strong>Company:</strong> ${car.company}</p>
+                            <p><strong>Type:</strong> ${car.type}</p>
+                            <p><strong>Launch Date:</strong> ${new Date(car.launch_date).toLocaleDateString()}</p>
+                            <p>${car.description}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("Error loading cars:", error);
+                document.getElementById('cars-container').innerHTML = `
                     <div class="empty-state">
-                        <h3>No Cars Found</h3>
-                        <p>Try adjusting your search filters or add cars through the admin panel.</p>
-                        <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Cars Now</a>
+                        <h3>Error Loading Cars</h3>
+                        <p>Please try again later.</p>
                     </div>
                 `;
-                return;
             }
-
-            container.innerHTML = filteredCars.map(car => `
-                <div class="card">
-                    <img src="${car.image}" alt="${car.name}" class="card-image" 
-                         onerror="this.src='https://images.unsplash.com/photo-1565688534245-05d6b5be184a?w=400'">
-                    <div class="card-content">
-                        <h3 class="card-title">${car.name}</h3>
-                        <div class="card-price">${car.price}</div>
-                        <p><strong>Company:</strong> ${car.company}</p>
-                        <p><strong>Type:</strong> ${car.type}</p>
-                        <p><strong>Launch Date:</strong> ${new Date(car.launch_date).toLocaleDateString()}</p>
-                        <p>${car.description}</p>
-                    </div>
-                </div>
-            `).join('');
         }
 
         // Populate company filter
-        function populateCompanyFilter() {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const cars = products.filter(p => p.category === 'cars');
-            const companies = [...new Set(cars.map(car => car.company))];
-            const filter = document.getElementById('filterCompany');
-            
-            companies.forEach(company => {
-                const option = document.createElement('option');
-                option.value = company;
-                option.textContent = company;
-                filter.appendChild(option);
-            });
+        async function populateCompanyFilter() {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", "cars"));
+                const querySnapshot = await getDocs(q);
+                const cars = [];
+                querySnapshot.forEach((doc) => {
+                    cars.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const companies = [...new Set(cars.map(car => car.company))];
+                const filter = document.getElementById('filterCompany');
+                
+                // Clear existing options except the first one
+                while (filter.children.length > 1) {
+                    filter.removeChild(filter.lastChild);
+                }
+                
+                companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company;
+                    option.textContent = company;
+                    filter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating company filter:', error);
+            }
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            populateCompanyFilter();
-            loadCars();
-            
-            // Add event listeners for real-time filtering
-            document.getElementById('searchCars').addEventListener('input', loadCars);
-            document.getElementById('filterCompany').addEventListener('change', loadCars);
-            document.getElementById('filterPrice').addEventListener('change', loadCars);
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await populateCompanyFilter();
+                await loadCars();
+                
+                // Add event listeners for real-time filtering
+                document.getElementById('searchCars').addEventListener('input', loadCars);
+                document.getElementById('filterCompany').addEventListener('change', loadCars);
+                document.getElementById('filterPrice').addEventListener('change', loadCars);
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
         });
     </script>
 </body>
