@@ -189,6 +189,13 @@
             grid-column: 1 / -1;
         }
 
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
+            grid-column: 1 / -1;
+        }
+
         /* Ad Container */
         .ad-container {
             background: white;
@@ -284,7 +291,10 @@
 
         <!-- Bikes Grid -->
         <div class="grid" id="bikes-container">
-            <!-- Bikes will be loaded dynamically -->
+            <div class="loading">
+                <h3>Loading Bikes...</h3>
+                <p>Please wait while we fetch the latest bikes</p>
+            </div>
         </div>
 
         <!-- Another Google AdSense Ad -->
@@ -308,95 +318,130 @@
         </div>
     </footer>
 
-    <script>
-        // Load bikes from localStorage with search and filter
-        function loadBikes() {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const bikes = products.filter(p => p.category === 'bikes');
-            const searchTerm = document.getElementById('searchBikes').value.toLowerCase();
-            const companyFilter = document.getElementById('filterCompany').value;
-            const priceFilter = document.getElementById('filterPrice').value;
-            
-            let filteredBikes = bikes;
-            
-            // Apply search filter
-            if (searchTerm) {
-                filteredBikes = filteredBikes.filter(bike => 
-                    bike.name.toLowerCase().includes(searchTerm) ||
-                    bike.company.toLowerCase().includes(searchTerm) ||
-                    bike.type.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            // Apply company filter
-            if (companyFilter) {
-                filteredBikes = filteredBikes.filter(bike => bike.company === companyFilter);
-            }
-            
-            // Apply price filter
-            if (priceFilter) {
-                filteredBikes = filteredBikes.filter(bike => {
-                    const priceNum = parseInt(bike.price.replace(/[^\d]/g, ''));
-                    if (priceFilter === 'low') return priceNum < 100000;
-                    if (priceFilter === 'medium') return priceNum >= 100000 && priceNum <= 300000;
-                    if (priceFilter === 'high') return priceNum > 300000;
-                    return true;
+    <script type="module">
+        import { db, collection, getDocs, query, where } from './firebase-config.js';
+
+        // Load bikes from Firebase with search and filter
+        async function loadBikes() {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", "bikes"));
+                const querySnapshot = await getDocs(q);
+                const bikes = [];
+                querySnapshot.forEach((doc) => {
+                    bikes.push({ id: doc.id, ...doc.data() });
                 });
-            }
-            
-            const container = document.getElementById('bikes-container');
-            
-            if (filteredBikes.length === 0) {
-                container.innerHTML = `
+                
+                const searchTerm = document.getElementById('searchBikes').value.toLowerCase();
+                const companyFilter = document.getElementById('filterCompany').value;
+                const priceFilter = document.getElementById('filterPrice').value;
+                
+                let filteredBikes = bikes;
+                
+                // Apply search filter
+                if (searchTerm) {
+                    filteredBikes = filteredBikes.filter(bike => 
+                        bike.name.toLowerCase().includes(searchTerm) ||
+                        bike.company.toLowerCase().includes(searchTerm) ||
+                        (bike.type && bike.type.toLowerCase().includes(searchTerm))
+                    );
+                }
+                
+                // Apply company filter
+                if (companyFilter) {
+                    filteredBikes = filteredBikes.filter(bike => bike.company === companyFilter);
+                }
+                
+                // Apply price filter
+                if (priceFilter) {
+                    filteredBikes = filteredBikes.filter(bike => {
+                        const priceNum = parseInt(bike.price.replace(/[^\d]/g, '')) || 0;
+                        if (priceFilter === 'low') return priceNum < 100000;
+                        if (priceFilter === 'medium') return priceNum >= 100000 && priceNum <= 300000;
+                        if (priceFilter === 'high') return priceNum > 300000;
+                        return true;
+                    });
+                }
+                
+                const container = document.getElementById('bikes-container');
+                
+                if (filteredBikes.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No Bikes Found</h3>
+                            <p>Try adjusting your search filters or add bikes through the admin panel.</p>
+                            <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Bikes Now</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = filteredBikes.map(bike => `
+                    <div class="card">
+                        <img src="${bike.image}" alt="${bike.name}" class="card-image" 
+                             onerror="this.src='https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400'">
+                        <div class="card-content">
+                            <h3 class="card-title">${bike.name}</h3>
+                            <div class="card-price">${bike.price}</div>
+                            <p><strong>Company:</strong> ${bike.company}</p>
+                            <p><strong>Type:</strong> ${bike.type}</p>
+                            <p><strong>Launch Date:</strong> ${new Date(bike.launch_date).toLocaleDateString()}</p>
+                            <p>${bike.description}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("Error loading bikes:", error);
+                document.getElementById('bikes-container').innerHTML = `
                     <div class="empty-state">
-                        <h3>No Bikes Found</h3>
-                        <p>Try adjusting your search filters or add bikes through the admin panel.</p>
-                        <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Bikes Now</a>
+                        <h3>Error Loading Bikes</h3>
+                        <p>Please try again later.</p>
                     </div>
                 `;
-                return;
             }
-
-            container.innerHTML = filteredBikes.map(bike => `
-                <div class="card">
-                    <img src="${bike.image}" alt="${bike.name}" class="card-image" 
-                         onerror="this.src='https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400'">
-                    <div class="card-content">
-                        <h3 class="card-title">${bike.name}</h3>
-                        <div class="card-price">${bike.price}</div>
-                        <p><strong>Company:</strong> ${bike.company}</p>
-                        <p><strong>Type:</strong> ${bike.type}</p>
-                        <p><strong>Launch Date:</strong> ${new Date(bike.launch_date).toLocaleDateString()}</p>
-                        <p>${bike.description}</p>
-                    </div>
-                </div>
-            `).join('');
         }
 
         // Populate company filter
-        function populateCompanyFilter() {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const bikes = products.filter(p => p.category === 'bikes');
-            const companies = [...new Set(bikes.map(bike => bike.company))];
-            const filter = document.getElementById('filterCompany');
-            
-            companies.forEach(company => {
-                const option = document.createElement('option');
-                option.value = company;
-                option.textContent = company;
-                filter.appendChild(option);
-            });
+        async function populateCompanyFilter() {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", "bikes"));
+                const querySnapshot = await getDocs(q);
+                const bikes = [];
+                querySnapshot.forEach((doc) => {
+                    bikes.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const companies = [...new Set(bikes.map(bike => bike.company))];
+                const filter = document.getElementById('filterCompany');
+                
+                // Clear existing options except the first one
+                while (filter.children.length > 1) {
+                    filter.removeChild(filter.lastChild);
+                }
+                
+                companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company;
+                    option.textContent = company;
+                    filter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating company filter:', error);
+            }
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            populateCompanyFilter();
-            loadBikes();
-            
-            // Add event listeners for real-time filtering
-            document.getElementById('searchBikes').addEventListener('input', loadBikes);
-            document.getElementById('filterCompany').addEventListener('change', loadBikes);
-            document.getElementById('filterPrice').addEventListener('change', loadBikes);
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await populateCompanyFilter();
+                await loadBikes();
+                
+                // Add event listeners for real-time filtering
+                document.getElementById('searchBikes').addEventListener('input', loadBikes);
+                document.getElementById('filterCompany').addEventListener('change', loadBikes);
+                document.getElementById('filterPrice').addEventListener('change', loadBikes);
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
         });
     </script>
 </body>
