@@ -189,6 +189,13 @@
             grid-column: 1 / -1;
         }
 
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
+            grid-column: 1 / -1;
+        }
+
         /* Ad Container */
         .ad-container {
             background: white;
@@ -284,7 +291,10 @@
 
         <!-- Mobiles Grid -->
         <div class="grid" id="mobiles-container">
-            <!-- Mobiles will be loaded dynamically -->
+            <div class="loading">
+                <h3>Loading Mobiles...</h3>
+                <p>Please wait while we fetch the latest mobiles</p>
+            </div>
         </div>
 
         <!-- Another Google AdSense Ad -->
@@ -308,95 +318,130 @@
         </div>
     </footer>
 
-    <script>
-        // Load mobiles from localStorage with search and filter
-        function loadMobiles() {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const mobiles = products.filter(p => p.category === 'mobiles');
-            const searchTerm = document.getElementById('searchMobiles').value.toLowerCase();
-            const companyFilter = document.getElementById('filterCompany').value;
-            const priceFilter = document.getElementById('filterPrice').value;
-            
-            let filteredMobiles = mobiles;
-            
-            // Apply search filter
-            if (searchTerm) {
-                filteredMobiles = filteredMobiles.filter(mobile => 
-                    mobile.name.toLowerCase().includes(searchTerm) ||
-                    mobile.company.toLowerCase().includes(searchTerm) ||
-                    mobile.type.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            // Apply company filter
-            if (companyFilter) {
-                filteredMobiles = filteredMobiles.filter(mobile => mobile.company === companyFilter);
-            }
-            
-            // Apply price filter
-            if (priceFilter) {
-                filteredMobiles = filteredMobiles.filter(mobile => {
-                    const priceNum = parseInt(mobile.price.replace(/[^\d]/g, ''));
-                    if (priceFilter === 'low') return priceNum < 20000;
-                    if (priceFilter === 'medium') return priceNum >= 20000 && priceNum <= 50000;
-                    if (priceFilter === 'high') return priceNum > 50000;
-                    return true;
+    <script type="module">
+        import { db, collection, getDocs, query, where } from './firebase-config.js';
+
+        // Load mobiles from Firebase with search and filter
+        async function loadMobiles() {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", "mobiles"));
+                const querySnapshot = await getDocs(q);
+                const mobiles = [];
+                querySnapshot.forEach((doc) => {
+                    mobiles.push({ id: doc.id, ...doc.data() });
                 });
-            }
-            
-            const container = document.getElementById('mobiles-container');
-            
-            if (filteredMobiles.length === 0) {
-                container.innerHTML = `
+                
+                const searchTerm = document.getElementById('searchMobiles').value.toLowerCase();
+                const companyFilter = document.getElementById('filterCompany').value;
+                const priceFilter = document.getElementById('filterPrice').value;
+                
+                let filteredMobiles = mobiles;
+                
+                // Apply search filter
+                if (searchTerm) {
+                    filteredMobiles = filteredMobiles.filter(mobile => 
+                        mobile.name.toLowerCase().includes(searchTerm) ||
+                        mobile.company.toLowerCase().includes(searchTerm) ||
+                        (mobile.type && mobile.type.toLowerCase().includes(searchTerm))
+                    );
+                }
+                
+                // Apply company filter
+                if (companyFilter) {
+                    filteredMobiles = filteredMobiles.filter(mobile => mobile.company === companyFilter);
+                }
+                
+                // Apply price filter
+                if (priceFilter) {
+                    filteredMobiles = filteredMobiles.filter(mobile => {
+                        const priceNum = parseInt(mobile.price.replace(/[^\d]/g, '')) || 0;
+                        if (priceFilter === 'low') return priceNum < 20000;
+                        if (priceFilter === 'medium') return priceNum >= 20000 && priceNum <= 50000;
+                        if (priceFilter === 'high') return priceNum > 50000;
+                        return true;
+                    });
+                }
+                
+                const container = document.getElementById('mobiles-container');
+                
+                if (filteredMobiles.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No Mobiles Found</h3>
+                            <p>Try adjusting your search filters or add mobiles through the admin panel.</p>
+                            <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Mobiles Now</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = filteredMobiles.map(mobile => `
+                    <div class="card">
+                        <img src="${mobile.image}" alt="${mobile.name}" class="card-image" 
+                             onerror="this.src='https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400'">
+                        <div class="card-content">
+                            <h3 class="card-title">${mobile.name}</h3>
+                            <div class="card-price">${mobile.price}</div>
+                            <p><strong>Company:</strong> ${mobile.company}</p>
+                            <p><strong>Type:</strong> ${mobile.type}</p>
+                            <p><strong>Launch Date:</strong> ${new Date(mobile.launch_date).toLocaleDateString()}</p>
+                            <p>${mobile.description}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("Error loading mobiles:", error);
+                document.getElementById('mobiles-container').innerHTML = `
                     <div class="empty-state">
-                        <h3>No Mobiles Found</h3>
-                        <p>Try adjusting your search filters or add mobiles through the admin panel.</p>
-                        <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Mobiles Now</a>
+                        <h3>Error Loading Mobiles</h3>
+                        <p>Please try again later.</p>
                     </div>
                 `;
-                return;
             }
-
-            container.innerHTML = filteredMobiles.map(mobile => `
-                <div class="card">
-                    <img src="${mobile.image}" alt="${mobile.name}" class="card-image" 
-                         onerror="this.src='https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400'">
-                    <div class="card-content">
-                        <h3 class="card-title">${mobile.name}</h3>
-                        <div class="card-price">${mobile.price}</div>
-                        <p><strong>Company:</strong> ${mobile.company}</p>
-                        <p><strong>Type:</strong> ${mobile.type}</p>
-                        <p><strong>Launch Date:</strong> ${new Date(mobile.launch_date).toLocaleDateString()}</p>
-                        <p>${mobile.description}</p>
-                    </div>
-                </div>
-            `).join('');
         }
 
         // Populate company filter
-        function populateCompanyFilter() {
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const mobiles = products.filter(p => p.category === 'mobiles');
-            const companies = [...new Set(mobiles.map(mobile => mobile.company))];
-            const filter = document.getElementById('filterCompany');
-            
-            companies.forEach(company => {
-                const option = document.createElement('option');
-                option.value = company;
-                option.textContent = company;
-                filter.appendChild(option);
-            });
+        async function populateCompanyFilter() {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", "mobiles"));
+                const querySnapshot = await getDocs(q);
+                const mobiles = [];
+                querySnapshot.forEach((doc) => {
+                    mobiles.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const companies = [...new Set(mobiles.map(mobile => mobile.company))];
+                const filter = document.getElementById('filterCompany');
+                
+                // Clear existing options except the first one
+                while (filter.children.length > 1) {
+                    filter.removeChild(filter.lastChild);
+                }
+                
+                companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company;
+                    option.textContent = company;
+                    filter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating company filter:', error);
+            }
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            populateCompanyFilter();
-            loadMobiles();
-            
-            // Add event listeners for real-time filtering
-            document.getElementById('searchMobiles').addEventListener('input', loadMobiles);
-            document.getElementById('filterCompany').addEventListener('change', loadMobiles);
-            document.getElementById('filterPrice').addEventListener('change', loadMobiles);
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await populateCompanyFilter();
+                await loadMobiles();
+                
+                // Add event listeners for real-time filtering
+                document.getElementById('searchMobiles').addEventListener('input', loadMobiles);
+                document.getElementById('filterCompany').addEventListener('change', loadMobiles);
+                document.getElementById('filterPrice').addEventListener('change', loadMobiles);
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
         });
     </script>
 </body>
