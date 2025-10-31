@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoMobilix - Latest Auto & Mobile Updates</title>
+    <meta name="description" content="Latest updates on cars, bikes, scooters, and mobiles. Get prices, specifications, and launch dates.">
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #e2e8f0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .card-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+
+        .card-description {
+            color: var(--secondary);
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--secondary);
+            grid-column: 1 / -1;
+        }
+
+        /* Ad Container */
+        .ad-container {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+            color: var(--gray);
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <span>🚗</span>
+                    <span>AutoMobilix</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="cars.html">Cars</a></li>
+                    <li><a href="bikes.html">Bikes</a></li>
+                    <li><a href="scooters.html">Scooters</a></li>
+                    <li><a href="mobiles.html">Mobiles</a></li>
+                    <li><a href="admin.html">Admin</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Discover Latest Auto & Tech</h1>
+            <p>Your ultimate destination for new car launches, bike updates, scooter releases, and mobile phone announcements</p>
+            <a href="#products" class="btn">Explore Products</a>
+        </div>
+    </section>
+
+    <main class="container">
+        <!-- Google AdSense Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-8089328615109878"
+                 data-ad-slot="1234567890"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="controls">
+            <div class="control-group">
+                <label for="globalSearch">Search Products</label>
+                <input type="text" id="globalSearch" class="control-input" placeholder="Search by name, company...">
+            </div>
+            <div class="control-group">
+                <label for="selCategory">Category</label>
+                <select id="selCategory" class="control-input">
+                    <option value="">All Categories</option>
+                    <option value="cars">Cars</option>
+                    <option value="bikes">Bikes</option>
+                    <option value="scooters">Scooters</option>
+                    <option value="mobiles">Mobiles</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="filterCompany">Company</label>
+                <select id="filterCompany" class="control-input">
+                    <option value="">All Companies</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="filterPrice">Price Range</label>
+                <select id="filterPrice" class="control-input">
+                    <option value="">All Prices</option>
+                    <option value="low">Under ₹5 Lakh</option>
+                    <option value="medium">₹5L - ₹15L</option>
+                    <option value="high">Above ₹15L</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products" class="grid">
+            <!-- Products will be loaded here dynamically -->
+        </div>
+
+        <!-- Another Google AdSense Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-format="fluid"
+                 data-ad-layout-key="-gw-3+1f-3d+2z"
+                 data-ad-client="ca-pub-8089328615109878"
+                 data-ad-slot="1234567891"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>AutoMobilix</h3>
+                    <p>Your trusted source for the latest automotive and mobile technology updates, prices, and specifications.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="cars.html">Cars</a></li>
+                        <li><a href="bikes.html">Bikes</a></li>
+                        <li><a href="scooters.html">Scooters</a></li>
+                        <li><a href="mobiles.html">Mobiles</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Info</h3>
+                    <ul class="footer-links">
+                        <li>📧 ravijain236129@gmail.com</li>
+                        <li>📞 +91 7737740207</li>
+                        <li>📍 India</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AutoMobilix. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Load all products from localStorage
+        function loadAllProducts() {
+            return JSON.parse(localStorage.getItem('products')) || [];
+        }
+
+        // Render products with search and filter
+        function renderProducts(productsToRender) {
+            const container = document.getElementById('products');
+            
+            if (productsToRender.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No products found</h3>
+                        <p>Try adjusting your search filters or add products through the admin panel.</p>
+                        <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Products</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = productsToRender.map(product => `
+                <div class="card">
+                    <img src="${product.image}" alt="${product.name}" class="card-image" 
+                         onerror="this.src='https://images.unsplash.com/photo-1565688534245-05d6b5be184a?w=400'">
+                    <div class="card-content">
+                        <h3 class="card-title">${product.name}</h3>
+                        <div class="card-meta">
+                            <span>🏢 ${product.company}</span>
+                            <span>📅 ${new Date(product.launch_date).toLocaleDateString()}</span>
+                        </div>
+                        <div class="card-price">${product.price}</div>
+                        <p class="card-description">${product.description}</p>
+                        <a href="${product.category}.html" class="btn" style="margin-top: 1rem; display: inline-block;">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Populate company filter
+        function populateCompanyFilter() {
+            const products = loadAllProducts();
+            const companies = [...new Set(products.map(product => product.company))];
+            const filter = document.getElementById('filterCompany');
+            
+            companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.textContent = company;
+                filter.appendChild(option);
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const products = loadAllProducts();
+            const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+            const category = document.getElementById('selCategory').value;
+            const company = document.getElementById('filterCompany').value;
+            const priceRange = document.getElementById('filterPrice').value;
+
+            let filtered = products.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                                    product.company.toLowerCase().includes(searchTerm) ||
+                                    product.type.toLowerCase().includes(searchTerm);
+                
+                const matchesCategory = !category || product.category === category;
+                const matchesCompany = !company || product.company === company;
+                
+                let matchesPrice = true;
+                if (priceRange) {
+                    const priceNum = parseInt(product.price.replace(/[^\d]/g, ''));
+                    if (priceRange === 'low') matchesPrice = priceNum < 500000;
+                    else if (priceRange === 'medium') matchesPrice = priceNum >= 500000 && priceNum <= 1500000;
+                    else if (priceRange === 'high') matchesPrice = priceNum > 1500000;
+                }
+
+                return matchesSearch && matchesCategory && matchesCompany && matchesPrice;
+            });
+
+            renderProducts(filtered);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const products = loadAllProducts();
+            populateCompanyFilter();
+            renderProducts(products);
+            
+            // Add event listeners for real-time filtering
+            document.getElementById('globalSearch').addEventListener('input', applyFilters);
+            document.getElementById('selCategory').addEventListener('change', applyFilters);
+            document.getElementById('filterCompany').addEventListener('change', applyFilters);
+            document.getElementById('filterPrice').addEventListener('change', applyFilters);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scooters - AutoMobilix</title>
+    <meta name="description" content="Latest electric scooter models with specifications, prices, and launch dates. Find your perfect electric scooter.">
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .page-hero {
+            text-align: center;
+            padding: 3rem 0;
+            color: white;
+        }
+
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--secondary);
+            grid-column: 1 / -1;
+        }
+
+        /* Ad Container */
+        .ad-container {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <span>🚗</span>
+                    <span>AutoMobilix</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="cars.html">Cars</a></li>
+                    <li><a href="bikes.html">Bikes</a></li>
+                    <li><a href="scooters.html" class="active">Scooters</a></li>
+                    <li><a href="mobiles.html">Mobiles</a></li>
+                    <li><a href="admin.html">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="page-hero">
+        <div class="container">
+            <h1>Electric Scooters</h1>
+            <p>Discover the latest electric scooters with advanced features</p>
+        </div>
+    </section>
+
+    <main class="container">
+        <!-- Google AdSense Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-8089328615109878"
+                 data-ad-slot="1234567896"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="controls">
+            <input type="text" class="control-input" placeholder="Search scooters..." id="searchScooters">
+            <select class="control-input" id="filterCompany">
+                <option value="">All Companies</option>
+            </select>
+            <select class="control-input" id="filterPrice">
+                <option value="">All Prices</option>
+                <option value="low">Under ₹80,000</option>
+                <option value="medium">₹80,000 - ₹1.5L</option>
+                <option value="high">Above ₹1.5L</option>
+            </select>
+        </div>
+
+        <!-- Scooters Grid -->
+        <div class="grid" id="scooters-container">
+            <!-- Scooters will be loaded dynamically -->
+        </div>
+
+        <!-- Another Google AdSense Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089328615109878" crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-format="fluid"
+                 data-ad-layout-key="-gw-3+1f-3d+2z"
+                 data-ad-client="ca-pub-8089328615109878"
+                 data-ad-slot="1234567897"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 AutoMobilix. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Load scooters from localStorage with search and filter
+        function loadScooters() {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const scooters = products.filter(p => p.category === 'scooters');
+            const searchTerm = document.getElementById('searchScooters').value.toLowerCase();
+            const companyFilter = document.getElementById('filterCompany').value;
+            const priceFilter = document.getElementById('filterPrice').value;
+            
+            let filteredScooters = scooters;
+            
+            // Apply search filter
+            if (searchTerm) {
+                filteredScooters = filteredScooters.filter(scooter => 
+                    scooter.name.toLowerCase().includes(searchTerm) ||
+                    scooter.company.toLowerCase().includes(searchTerm) ||
+                    scooter.type.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Apply company filter
+            if (companyFilter) {
+                filteredScooters = filteredScooters.filter(scooter => scooter.company === companyFilter);
+            }
+            
+            // Apply price filter
+            if (priceFilter) {
+                filteredScooters = filteredScooters.filter(scooter => {
+                    const priceNum = parseInt(scooter.price.replace(/[^\d]/g, ''));
+                    if (priceFilter === 'low') return priceNum < 80000;
+                    if (priceFilter === 'medium') return priceNum >= 80000 && priceNum <= 150000;
+                    if (priceFilter === 'high') return priceNum > 150000;
+                    return true;
+                });
+            }
+            
+            const container = document.getElementById('scooters-container');
+            
+            if (filteredScooters.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No Scooters Found</h3>
+                        <p>Try adjusting your search filters or add scooters through the admin panel.</p>
+                        <a href="admin.html" class="btn" style="margin-top: 1rem;">Add Scooters Now</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredScooters.map(scooter => `
+                <div class="card">
+                    <img src="${scooter.image}" alt="${scooter.name}" class="card-image" 
+                         onerror="this.src='https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400'">
+                    <div class="card-content">
+                        <h3 class="card-title">${scooter.name}</h3>
+                        <div class="card-price">${scooter.price}</div>
+                        <p><strong>Company:</strong> ${scooter.company}</p>
+                        <p><strong>Type:</strong> ${scooter.type}</p>
+                        <p><strong>Launch Date:</strong> ${new Date(scooter.launch_date).toLocaleDateString()}</p>
+                        <p>${scooter.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Populate company filter
+        function populateCompanyFilter() {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const scooters = products.filter(p => p.category === 'scooters');
+            const companies = [...new Set(scooters.map(scooter => scooter.company))];
+            const filter = document.getElementById('filterCompany');
+            
+            companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.textContent = company;
+                filter.appendChild(option);
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateCompanyFilter();
+            loadScooters();
+            
+            // Add event listeners for real-time filtering
+            document.getElementById('searchScooters').addEventListener('input', loadScooters);
+            document.getElementById('filterCompany').addEventListener('change', loadScooters);
+            document.getElementById('filterPrice').addEventListener('change', loadScooters);
+        });
+    </script>
+</body>
+</html>

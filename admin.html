@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AutoMobilix</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .admin-panel {
+            background: white;
+            min-height: 80vh;
+            margin: 2rem auto;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .admin-header {
+            background: var(--dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .admin-tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .admin-tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--secondary);
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+
+        .admin-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
+
+        .admin-content {
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-input {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <span>🚗</span>
+                    <span>AutoMobilix</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="cars.html">Cars</a></li>
+                    <li><a href="bikes.html">Bikes</a></li>
+                    <li><a href="scooters.html">Scooters</a></li>
+                    <li><a href="mobiles.html">Mobiles</a></li>
+                    <li><a href="admin.html" class="active">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h1>Admin Dashboard</h1>
+                <p>Manage your products and content</p>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="showTab('add')">Add Product</button>
+                <button class="admin-tab" onclick="showTab('manage')">Manage Products</button>
+                <button class="admin-tab" onclick="showTab('export')">Export Data</button>
+            </div>
+
+            <div class="admin-content">
+                <!-- Add Product Tab -->
+                <div id="add-tab" class="tab-content active">
+                    <h2>Add New Product</h2>
+                    <form id="product-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-input" id="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="cars">Cars</option>
+                                    <option value="bikes">Bikes</option>
+                                    <option value="scooters">Scooters</option>
+                                    <option value="mobiles">Mobiles</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-input" id="name" required placeholder="Enter product name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Company</label>
+                                <input type="text" class="form-input" id="company" required placeholder="Enter company name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Price</label>
+                                <input type="text" class="form-input" id="price" required placeholder="e.g., ₹12.50 Lakh">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Type</label>
+                                <input type="text" class="form-input" id="type" required placeholder="e.g., SUV, Electric, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Launch Date</label>
+                                <input type="date" class="form-input" id="launch-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Image URL</label>
+                                <input type="url" class="form-input" id="image" required placeholder="https://example.com/image.jpg">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-input" id="description" rows="4" placeholder="Product description"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Product</button>
+                        <button type="reset" class="btn btn-secondary">Clear Form</button>
+                    </form>
+                </div>
+
+                <!-- Manage Products Tab -->
+                <div id="manage-tab" class="tab-content">
+                    <h2>Manage Products</h2>
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="search-products" placeholder="Search products...">
+                    </div>
+                    <div class="products-grid" id="products-list">
+                        <!-- Products will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Export Data Tab -->
+                <div id="export-tab" class="tab-content">
+                    <h2>Export Data</h2>
+                    <div style="margin: 2rem 0;">
+                        <h3>Download JSON Files</h3>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0;">
+                            <button class="btn btn-primary" onclick="downloadData('cars')">Cars Data</button>
+                            <button class="btn btn-primary" onclick="downloadData('bikes')">Bikes Data</button>
+                            <button class="btn btn-primary" onclick="downloadData('scooters')">Scooters Data</button>
+                            <button class="btn btn-primary" onclick="downloadData('mobiles')">Mobiles Data</button>
+                            <button class="btn btn-secondary" onclick="downloadAllData()">All Data</button>
+                        </div>
+                    </div>
+                    <div style="margin: 2rem 0;">
+                        <h3>GitHub Integration</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">GitHub Repository</label>
+                                <input type="text" class="form-input" id="github-repo" placeholder="username/repository">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Access Token</label>
+                                <input type="password" class="form-input" id="github-token" placeholder="GitHub token">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="pushToGitHub()">Push to GitHub</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 AutoMobilix. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab Management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            // Load products if manage tab
+            if (tabName === 'manage') {
+                loadProducts();
+            }
+        }
+
+        // Product Management
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+
+        document.getElementById('product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const product = {
+                id: Date.now(),
+                name: document.getElementById('name').value,
+                company: document.getElementById('company').value,
+                price: document.getElementById('price').value,
+                type: document.getElementById('type').value,
+                category: document.getElementById('category').value,
+                launch_date: document.getElementById('launch-date').value,
+                image: document.getElementById('image').value,
+                description: document.getElementById('description').value
+            };
+
+            products.push(product);
+            localStorage.setItem('products', JSON.stringify(products));
+            
+            alert('Product added successfully!');
+            this.reset();
+        });
+
+        function loadProducts() {
+            const productsList = document.getElementById('products-list');
+            const searchTerm = document.getElementById('search-products').value.toLowerCase();
+            
+            let filteredProducts = products;
+            if (searchTerm) {
+                filteredProducts = products.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) ||
+                    product.company.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            if (filteredProducts.length === 0) {
+                productsList.innerHTML = '<p>No products found.</p>';
+                return;
+            }
+
+            productsList.innerHTML = filteredProducts.map(product => `
+                <div class="product-card">
+                    <img src="${product.image}" alt="${product.name}" class="product-image" 
+                         onerror="this.src='https://images.unsplash.com/photo-1565688534245-05d6b5be184a?w=400'">
+                    <h3>${product.name}</h3>
+                    <p><strong>Company:</strong> ${product.company}</p>
+                    <p><strong>Price:</strong> ${product.price}</p>
+                    <p><strong>Category:</strong> ${product.category}</p>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn btn-primary" onclick="editProduct(${product.id})">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                document.getElementById('category').value = product.category;
+                document.getElementById('name').value = product.name;
+                document.getElementById('company').value = product.company;
+                document.getElementById('price').value = product.price;
+                document.getElementById('type').value = product.type;
+                document.getElementById('launch-date').value = product.launch_date;
+                document.getElementById('image').value = product.image;
+                document.getElementById('description').value = product.description;
+                
+                showTab('add');
+            }
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem('products', JSON.stringify(products));
+                loadProducts();
+            }
+        }
+
+        // Export Functions
+        function downloadData(category) {
+            const categoryProducts = products.filter(p => p.category === category);
+            const dataStr = JSON.stringify(categoryProducts, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${category}_data.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadAllData() {
+            ['cars', 'bikes', 'scooters', 'mobiles'].forEach(category => {
+                downloadData(category);
+            });
+        }
+
+        function pushToGitHub() {
+            const repo = document.getElementById('github-repo').value;
+            const token = document.getElementById('github-token').value;
+            
+            if (!repo) {
+                alert('Please enter GitHub repository name');
+                return;
+            }
+            
+            // Simulate GitHub push
+            alert(`Data would be pushed to GitHub repository: ${repo}\n\nIn a real implementation, this would use GitHub API to upload JSON files.`);
+        }
+
+        // Search functionality
+        document.getElementById('search-products').addEventListener('input', loadProducts);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
