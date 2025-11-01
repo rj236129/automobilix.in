@@ -253,6 +253,13 @@
             border-radius: 8px;
             margin: 1rem 0;
         }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--secondary);
+            grid-column: 1 / -1;
+        }
     </style>
 </head>
 <body>
@@ -283,9 +290,9 @@
             </div>
 
             <div class="admin-tabs">
-                <button class="admin-tab active" onclick="showTab('add')">Add Product</button>
-                <button class="admin-tab" onclick="showTab('manage')">Manage Products</button>
-                <button class="admin-tab" onclick="showTab('export')">Export Data</button>
+                <button class="admin-tab active" data-tab="add">Add Product</button>
+                <button class="admin-tab" data-tab="manage">Manage Products</button>
+                <button class="admin-tab" data-tab="export">Export Data</button>
             </div>
 
             <div class="admin-content">
@@ -335,7 +342,7 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Add Product</button>
-                        <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
+                        <button type="button" class="btn btn-secondary" id="clear-form">Clear Form</button>
                     </form>
                 </div>
 
@@ -360,11 +367,11 @@
                     <div style="margin: 2rem 0;">
                         <h3>Download JSON Files</h3>
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0;">
-                            <button class="btn btn-primary" onclick="downloadData('cars')">Cars Data</button>
-                            <button class="btn btn-primary" onclick="downloadData('bikes')">Bikes Data</button>
-                            <button class="btn btn-primary" onclick="downloadData('scooters')">Scooters Data</button>
-                            <button class="btn btn-primary" onclick="downloadData('mobiles')">Mobiles Data</button>
-                            <button class="btn btn-secondary" onclick="downloadAllData()">All Data</button>
+                            <button class="btn btn-primary" id="export-cars">Cars Data</button>
+                            <button class="btn btn-primary" id="export-bikes">Bikes Data</button>
+                            <button class="btn btn-primary" id="export-scooters">Scooters Data</button>
+                            <button class="btn btn-primary" id="export-mobiles">Mobiles Data</button>
+                            <button class="btn btn-secondary" id="export-all">All Data</button>
                         </div>
                     </div>
                     <div style="margin: 2rem 0;">
@@ -379,7 +386,7 @@
                                 <input type="password" class="form-input" id="github-token" placeholder="GitHub token">
                             </div>
                         </div>
-                        <button class="btn btn-primary" onclick="pushToGitHub()">Push to GitHub</button>
+                        <button class="btn btn-primary" id="push-github">Push to GitHub</button>
                     </div>
                 </div>
             </div>
@@ -406,25 +413,8 @@
             where 
         } from './firebase-config.js';
 
-        // Show message function
-        function showMessage(message, type, containerId = 'form-messages') {
-            const container = document.getElementById(containerId);
-            const messageDiv = document.createElement('div');
-            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
-            messageDiv.textContent = message;
-            container.innerHTML = '';
-            container.appendChild(messageDiv);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (messageDiv.parentNode === container) {
-                    messageDiv.remove();
-                }
-            }, 5000);
-        }
-
-        // Tab Management
-        function showTab(tabName) {
+        // Global functions that need to be accessible from HTML onclick
+        window.showTab = function(tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -443,13 +433,152 @@
             if (tabName === 'manage') {
                 loadProducts();
             }
-        }
+        };
 
-        // Clear form
-        function clearForm() {
+        window.clearForm = function() {
             document.getElementById('product-form').reset();
             delete document.getElementById('product-form').dataset.editingId;
             document.getElementById('form-messages').innerHTML = '';
+            const submitBtn = document.querySelector('#product-form button[type="submit"]');
+            submitBtn.textContent = 'Add Product';
+        };
+
+        window.editProduct = async function(id) {
+            console.log('Editing product with ID:', id);
+            try {
+                // Get the specific document
+                const docRef = doc(db, "products", id);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const product = { id: docSnap.id, ...docSnap.data() };
+                    console.log('Product data:', product);
+                    
+                    // Fill the form with product data
+                    document.getElementById('category').value = product.category || '';
+                    document.getElementById('name').value = product.name || '';
+                    document.getElementById('company').value = product.company || '';
+                    document.getElementById('price').value = product.price || '';
+                    document.getElementById('type').value = product.type || '';
+                    document.getElementById('launch-date').value = product.launch_date || '';
+                    document.getElementById('image').value = product.image || '';
+                    document.getElementById('description').value = product.description || '';
+                    
+                    // Store the current product ID for updating
+                    document.getElementById('product-form').dataset.editingId = product.id;
+                    
+                    // Switch to add tab and show message
+                    showTab('add');
+                    showMessage('Product loaded for editing. Make your changes and click "Update Product" to save.', 'success');
+                    
+                    // Change button text to indicate editing mode
+                    const submitBtn = document.querySelector('#product-form button[type="submit"]');
+                    submitBtn.textContent = 'Update Product';
+                    
+                } else {
+                    showMessage('Product not found in database.', 'error');
+                }
+            } catch (error) {
+                console.error("Error loading product for editing:", error);
+                showMessage('Error loading product for editing: ' + error.message, 'error');
+            }
+        };
+
+        window.deleteProduct = async function(id) {
+            if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+                try {
+                    await deleteDoc(doc(db, "products", id));
+                    showMessage('Product deleted successfully!', 'success', 'manage-messages');
+                    loadProducts(); // Reload the products list
+                } catch (error) {
+                    console.error("Error deleting product:", error);
+                    let errorMessage = 'Error deleting product. Please try again.';
+                    
+                    if (error.code === 'permission-denied') {
+                        errorMessage = 'Firebase Permission Denied. Cannot delete product. Check your security rules.';
+                    }
+                    
+                    showMessage(errorMessage, 'error', 'manage-messages');
+                }
+            }
+        };
+
+        window.downloadData = async function(category) {
+            try {
+                const q = query(collection(db, "products"), where("category", "==", category));
+                const querySnapshot = await getDocs(q);
+                const categoryProducts = [];
+                querySnapshot.forEach((doc) => {
+                    categoryProducts.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const dataStr = JSON.stringify(categoryProducts, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${category}_data.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showMessage(`${category} data exported successfully!`, 'success');
+            } catch (error) {
+                console.error("Error exporting data:", error);
+                showMessage('Error exporting data: ' + error.message, 'error');
+            }
+        };
+
+        window.downloadAllData = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                const allProducts = [];
+                querySnapshot.forEach((doc) => {
+                    allProducts.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const dataStr = JSON.stringify(allProducts, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `all_products_data.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showMessage('All data exported successfully!', 'success');
+            } catch (error) {
+                console.error("Error exporting all data:", error);
+                showMessage('Error exporting all data: ' + error.message, 'error');
+            }
+        };
+
+        window.pushToGitHub = function() {
+            const repo = document.getElementById('github-repo').value;
+            const token = document.getElementById('github-token').value;
+            
+            if (!repo) {
+                showMessage('Please enter GitHub repository name', 'error');
+                return;
+            }
+            
+            showMessage(`GitHub integration would push data to: ${repo} (This is a demo feature)`, 'success');
+        };
+
+        // Show message function
+        function showMessage(message, type, containerId = 'form-messages') {
+            const container = document.getElementById(containerId);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+            messageDiv.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(messageDiv);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode === container) {
+                    messageDiv.remove();
+                }
+            }, 5000);
         }
 
         // Product Management
@@ -481,6 +610,9 @@
                     await updateDoc(doc(db, "products", editingId), product);
                     delete this.dataset.editingId;
                     showMessage('Product updated successfully!', 'success');
+                    // Reset button text
+                    const submitBtn = document.querySelector('#product-form button[type="submit"]');
+                    submitBtn.textContent = 'Add Product';
                 } else {
                     // Add new product
                     await addDoc(collection(db, "products"), product);
@@ -519,7 +651,7 @@
                     products.push({ id: doc.id, ...doc.data() });
                 });
                 
-                console.log('Loaded products:', products); // Debug log
+                console.log('Loaded products:', products);
                 
                 let filteredProducts = products;
                 if (searchTerm) {
@@ -531,7 +663,7 @@
 
                 if (filteredProducts.length === 0) {
                     productsList.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                        <div class="empty-state">
                             <h3>No products found</h3>
                             <p>Try adjusting your search or add new products</p>
                         </div>
@@ -566,8 +698,6 @@
                     errorMessage = 'Firebase Permission Denied. Please check your Firestore security rules. Go to Firebase Console > Firestore Database > Rules and set rules to allow read/write.';
                 } else if (error.code === 'unavailable') {
                     errorMessage = 'Network error. Please check your internet connection.';
-                } else if (error.code === 'failed-precondition') {
-                    errorMessage = 'Firestore not initialized properly. Please refresh the page.';
                 }
                 
                 showMessage(errorMessage, 'error', 'manage-messages');
@@ -575,134 +705,32 @@
             }
         }
 
-        async function editProduct(id) {
-            console.log('Editing product with ID:', id); // Debug log
-            try {
-                // Get the specific document
-                const docRef = doc(db, "products", id);
-                const docSnap = await getDoc(docRef);
-                
-                if (docSnap.exists()) {
-                    const product = { id: docSnap.id, ...docSnap.data() };
-                    console.log('Product data:', product); // Debug log
-                    
-                    // Fill the form with product data
-                    document.getElementById('category').value = product.category || '';
-                    document.getElementById('name').value = product.name || '';
-                    document.getElementById('company').value = product.company || '';
-                    document.getElementById('price').value = product.price || '';
-                    document.getElementById('type').value = product.type || '';
-                    document.getElementById('launch-date').value = product.launch_date || '';
-                    document.getElementById('image').value = product.image || '';
-                    document.getElementById('description').value = product.description || '';
-                    
-                    // Store the current product ID for updating
-                    document.getElementById('product-form').dataset.editingId = product.id;
-                    
-                    // Switch to add tab and show message
-                    showTab('add');
-                    showMessage('Product loaded for editing. Make your changes and click "Add Product" to update.', 'success');
-                    
-                    // Change button text to indicate editing mode
-                    const submitBtn = document.querySelector('#product-form button[type="submit"]');
-                    submitBtn.textContent = 'Update Product';
-                    
-                } else {
-                    showMessage('Product not found in database.', 'error');
-                }
-            } catch (error) {
-                console.error("Error loading product for editing:", error);
-                showMessage('Error loading product for editing: ' + error.message, 'error');
-            }
-        }
-
-        async function deleteProduct(id) {
-            if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-                try {
-                    await deleteDoc(doc(db, "products", id));
-                    showMessage('Product deleted successfully!', 'success', 'manage-messages');
-                    loadProducts(); // Reload the products list
-                } catch (error) {
-                    console.error("Error deleting product:", error);
-                    let errorMessage = 'Error deleting product. Please try again.';
-                    
-                    if (error.code === 'permission-denied') {
-                        errorMessage = 'Firebase Permission Denied. Cannot delete product. Check your security rules.';
-                    }
-                    
-                    showMessage(errorMessage, 'error', 'manage-messages');
-                }
-            }
-        }
-
-        // Export Functions
-        async function downloadData(category) {
-            try {
-                const q = query(collection(db, "products"), where("category", "==", category));
-                const querySnapshot = await getDocs(q);
-                const categoryProducts = [];
-                querySnapshot.forEach((doc) => {
-                    categoryProducts.push({ id: doc.id, ...doc.data() });
-                });
-                
-                const dataStr = JSON.stringify(categoryProducts, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${category}_data.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                showMessage(`${category} data exported successfully!`, 'success');
-            } catch (error) {
-                console.error("Error exporting data:", error);
-                showMessage('Error exporting data: ' + error.message, 'error');
-            }
-        }
-
-        async function downloadAllData() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "products"));
-                const allProducts = [];
-                querySnapshot.forEach((doc) => {
-                    allProducts.push({ id: doc.id, ...doc.data() });
-                });
-                
-                const dataStr = JSON.stringify(allProducts, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `all_products_data.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                showMessage('All data exported successfully!', 'success');
-            } catch (error) {
-                console.error("Error exporting all data:", error);
-                showMessage('Error exporting all data: ' + error.message, 'error');
-            }
-        }
-
-        function pushToGitHub() {
-            const repo = document.getElementById('github-repo').value;
-            const token = document.getElementById('github-token').value;
-            
-            if (!repo) {
-                showMessage('Please enter GitHub repository name', 'error');
-                return;
-            }
-            
-            showMessage(`GitHub integration would push data to: ${repo} (This is a demo feature)`, 'success');
-        }
-
-        // Search functionality
-        document.getElementById('search-products').addEventListener('input', loadProducts);
-
-        // Initialize when page loads
+        // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Admin page loaded'); // Debug log
+            console.log('Admin page loaded');
+            
+            // Tab click events
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    showTab(this.dataset.tab);
+                });
+            });
+
+            // Clear form button
+            document.getElementById('clear-form').addEventListener('click', clearForm);
+
+            // Search functionality
+            document.getElementById('search-products').addEventListener('input', loadProducts);
+
+            // Export buttons
+            document.getElementById('export-cars').addEventListener('click', () => downloadData('cars'));
+            document.getElementById('export-bikes').addEventListener('click', () => downloadData('bikes'));
+            document.getElementById('export-scooters').addEventListener('click', () => downloadData('scooters'));
+            document.getElementById('export-mobiles').addEventListener('click', () => downloadData('mobiles'));
+            document.getElementById('export-all').addEventListener('click', downloadAllData);
+            document.getElementById('push-github').addEventListener('click', pushToGitHub);
+
+            // Load products initially
             loadProducts();
         });
     </script>
