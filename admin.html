@@ -235,6 +235,24 @@
             padding: 2rem;
             color: var(--secondary);
         }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
     </style>
 </head>
 <body>
@@ -274,6 +292,7 @@
                 <!-- Add Product Tab -->
                 <div id="add-tab" class="tab-content active">
                     <h2>Add New Product</h2>
+                    <div id="form-messages"></div>
                     <form id="product-form">
                         <div class="form-grid">
                             <div class="form-group">
@@ -323,6 +342,7 @@
                 <!-- Manage Products Tab -->
                 <div id="manage-tab" class="tab-content">
                     <h2>Manage Products</h2>
+                    <div id="manage-messages"></div>
                     <div class="form-group">
                         <input type="text" class="form-input" id="search-products" placeholder="Search products...">
                     </div>
@@ -373,7 +393,35 @@
     </footer>
 
     <script type="module">
-        import { db, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from './firebase-config.js';
+        import { 
+            db, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            getDoc,
+            updateDoc, 
+            deleteDoc, 
+            doc, 
+            query, 
+            where 
+        } from './firebase-config.js';
+
+        // Show message function
+        function showMessage(message, type, containerId = 'form-messages') {
+            const container = document.getElementById(containerId);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+            messageDiv.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(messageDiv);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode === container) {
+                    messageDiv.remove();
+                }
+            }, 5000);
+        }
 
         // Tab Management
         function showTab(tabName) {
@@ -401,6 +449,7 @@
         function clearForm() {
             document.getElementById('product-form').reset();
             delete document.getElementById('product-form').dataset.editingId;
+            document.getElementById('form-messages').innerHTML = '';
         }
 
         // Product Management
@@ -419,17 +468,23 @@
                 created_at: new Date().toISOString()
             };
 
+            // Basic validation
+            if (!product.name || !product.company || !product.category) {
+                showMessage('Please fill in all required fields', 'error');
+                return;
+            }
+
             try {
                 const editingId = this.dataset.editingId;
                 if (editingId) {
                     // Update existing product
                     await updateDoc(doc(db, "products", editingId), product);
                     delete this.dataset.editingId;
-                    alert('Product updated successfully!');
+                    showMessage('Product updated successfully!', 'success');
                 } else {
                     // Add new product
                     await addDoc(collection(db, "products"), product);
-                    alert('Product added successfully!');
+                    showMessage('Product added successfully!', 'success');
                 }
                 clearForm();
                 
@@ -439,7 +494,15 @@
                 }
             } catch (error) {
                 console.error("Error saving product:", error);
-                alert('Error saving product. Please try again.');
+                let errorMessage = 'Error saving product. Please try again.';
+                
+                if (error.code === 'permission-denied') {
+                    errorMessage = 'Firebase Permission Denied. Please check your Firestore security rules.';
+                } else if (error.code === 'unavailable') {
+                    errorMessage = 'Network error. Please check your internet connection.';
+                }
+                
+                showMessage(errorMessage, 'error');
             }
         });
 
@@ -456,16 +519,23 @@
                     products.push({ id: doc.id, ...doc.data() });
                 });
                 
+                console.log('Loaded products:', products); // Debug log
+                
                 let filteredProducts = products;
                 if (searchTerm) {
                     filteredProducts = products.filter(product => 
                         product.name.toLowerCase().includes(searchTerm) ||
-                        product.company.toLowerCase().includes(searchTerm)
+                        (product.company && product.company.toLowerCase().includes(searchTerm))
                     );
                 }
 
                 if (filteredProducts.length === 0) {
-                    productsList.innerHTML = '<p>No products found.</p>';
+                    productsList.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                            <h3>No products found</h3>
+                            <p>Try adjusting your search or add new products</p>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -477,54 +547,90 @@
                         <p><strong>Company:</strong> ${product.company}</p>
                         <p><strong>Price:</strong> ${product.price}</p>
                         <p><strong>Category:</strong> ${product.category}</p>
+                        <p><strong>Type:</strong> ${product.type || 'N/A'}</p>
                         <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
                             <button class="btn btn-primary" onclick="editProduct('${product.id}')">Edit</button>
                             <button class="btn btn-danger" onclick="deleteProduct('${product.id}')">Delete</button>
                         </div>
                     </div>
                 `).join('');
+                
+                // Clear any error messages
+                document.getElementById('manage-messages').innerHTML = '';
+                
             } catch (error) {
                 console.error("Error loading products:", error);
-                document.getElementById('products-list').innerHTML = '<p>Error loading products.</p>';
+                let errorMessage = 'Error loading products. Please try again.';
+                
+                if (error.code === 'permission-denied') {
+                    errorMessage = 'Firebase Permission Denied. Please check your Firestore security rules. Go to Firebase Console > Firestore Database > Rules and set rules to allow read/write.';
+                } else if (error.code === 'unavailable') {
+                    errorMessage = 'Network error. Please check your internet connection.';
+                } else if (error.code === 'failed-precondition') {
+                    errorMessage = 'Firestore not initialized properly. Please refresh the page.';
+                }
+                
+                showMessage(errorMessage, 'error', 'manage-messages');
+                document.getElementById('products-list').innerHTML = '<p>Error loading products. Please check the error message above.</p>';
             }
         }
 
         async function editProduct(id) {
+            console.log('Editing product with ID:', id); // Debug log
             try {
+                // Get the specific document
                 const docRef = doc(db, "products", id);
-                const docSnap = await getDocs(query(collection(db, "products"), where("__name__", "==", id)));
+                const docSnap = await getDoc(docRef);
                 
-                if (!docSnap.empty) {
-                    const product = { id: docSnap.docs[0].id, ...docSnap.docs[0].data() };
+                if (docSnap.exists()) {
+                    const product = { id: docSnap.id, ...docSnap.data() };
+                    console.log('Product data:', product); // Debug log
                     
-                    document.getElementById('category').value = product.category;
-                    document.getElementById('name').value = product.name;
-                    document.getElementById('company').value = product.company;
-                    document.getElementById('price').value = product.price;
-                    document.getElementById('type').value = product.type;
-                    document.getElementById('launch-date').value = product.launch_date;
-                    document.getElementById('image').value = product.image;
-                    document.getElementById('description').value = product.description;
+                    // Fill the form with product data
+                    document.getElementById('category').value = product.category || '';
+                    document.getElementById('name').value = product.name || '';
+                    document.getElementById('company').value = product.company || '';
+                    document.getElementById('price').value = product.price || '';
+                    document.getElementById('type').value = product.type || '';
+                    document.getElementById('launch-date').value = product.launch_date || '';
+                    document.getElementById('image').value = product.image || '';
+                    document.getElementById('description').value = product.description || '';
                     
                     // Store the current product ID for updating
                     document.getElementById('product-form').dataset.editingId = product.id;
                     
+                    // Switch to add tab and show message
                     showTab('add');
+                    showMessage('Product loaded for editing. Make your changes and click "Add Product" to update.', 'success');
+                    
+                    // Change button text to indicate editing mode
+                    const submitBtn = document.querySelector('#product-form button[type="submit"]');
+                    submitBtn.textContent = 'Update Product';
+                    
+                } else {
+                    showMessage('Product not found in database.', 'error');
                 }
             } catch (error) {
                 console.error("Error loading product for editing:", error);
-                alert('Error loading product for editing.');
+                showMessage('Error loading product for editing: ' + error.message, 'error');
             }
         }
 
         async function deleteProduct(id) {
-            if (confirm('Are you sure you want to delete this product?')) {
+            if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
                 try {
                     await deleteDoc(doc(db, "products", id));
-                    loadProducts();
+                    showMessage('Product deleted successfully!', 'success', 'manage-messages');
+                    loadProducts(); // Reload the products list
                 } catch (error) {
                     console.error("Error deleting product:", error);
-                    alert('Error deleting product. Please try again.');
+                    let errorMessage = 'Error deleting product. Please try again.';
+                    
+                    if (error.code === 'permission-denied') {
+                        errorMessage = 'Firebase Permission Denied. Cannot delete product. Check your security rules.';
+                    }
+                    
+                    showMessage(errorMessage, 'error', 'manage-messages');
                 }
             }
         }
@@ -547,9 +653,11 @@
                 a.download = `${category}_data.json`;
                 a.click();
                 URL.revokeObjectURL(url);
+                
+                showMessage(`${category} data exported successfully!`, 'success');
             } catch (error) {
                 console.error("Error exporting data:", error);
-                alert('Error exporting data.');
+                showMessage('Error exporting data: ' + error.message, 'error');
             }
         }
 
@@ -569,9 +677,11 @@
                 a.download = `all_products_data.json`;
                 a.click();
                 URL.revokeObjectURL(url);
+                
+                showMessage('All data exported successfully!', 'success');
             } catch (error) {
                 console.error("Error exporting all data:", error);
-                alert('Error exporting all data.');
+                showMessage('Error exporting all data: ' + error.message, 'error');
             }
         }
 
@@ -580,18 +690,19 @@
             const token = document.getElementById('github-token').value;
             
             if (!repo) {
-                alert('Please enter GitHub repository name');
+                showMessage('Please enter GitHub repository name', 'error');
                 return;
             }
             
-            alert(`Data would be pushed to GitHub repository: ${repo}\n\nIn a real implementation, this would use GitHub API to upload JSON files.`);
+            showMessage(`GitHub integration would push data to: ${repo} (This is a demo feature)`, 'success');
         }
 
         // Search functionality
         document.getElementById('search-products').addEventListener('input', loadProducts);
 
-        // Initialize
+        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Admin page loaded'); // Debug log
             loadProducts();
         });
     </script>
